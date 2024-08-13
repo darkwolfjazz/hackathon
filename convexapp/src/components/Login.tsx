@@ -1,30 +1,28 @@
 import React, { useState } from 'react';
-import { useQuery } from 'convex/react';
-import { getUser } from '../../convex/users';; // Ensure this path is correct
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const user = useQuery(api.users.getUser, { email });
+
   // Use the getUser query correctly
   const { data: user, isLoading, isError, error } = useQuery(getUser,{ email });
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) {
-      alert("Loading...");
+    if (user === undefined) {
+      // Query is still loading
       return;
     }
-    if (isError) {
-      console.error(error);
-      alert("Error fetching user");
+    if (user === null) {
+      // No user found with this email
+      alert("Invalid email or password");
       return;
     }
-    if (!user) {
-      alert("User not found");
-      return;
-    }
-
-    if (user.passwordHash === password) { // In a real app, hash the password
+    // In a real app, never compare passwords like this. Use proper hashing.
+    if (user.passwordHash === password) {
       alert("Login successful!");
     } else {
       alert("Invalid email or password");
