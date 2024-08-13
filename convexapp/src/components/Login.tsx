@@ -1,25 +1,30 @@
 // src/components/Login.tsx
 import React, { useState } from 'react';
-import { useMutation } from "convex/react";
-import { getUser } from "../../convex/users"; // Adjust the path if necessary
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const getUserMutation = useMutation("users:getUser"); // Use string reference
+
+  const user = useQuery(api.users.getUser, { email });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const user = await getUserMutation({ email });
-      if (user && user.passwordHash === password) { // In a real app, hash the password
-        alert("Login successful!");
-      } else {
-        alert("Invalid email or password");
-      }
-    } catch (error) {
-      console.error("Error logging in:", error);
-      alert("Failed to log in");
+    if (user === undefined) {
+      // Query is still loading
+      return;
+    }
+    if (user === null) {
+      // No user found with this email
+      alert("Invalid email or password");
+      return;
+    }
+    // In a real app, never compare passwords like this. Use proper hashing.
+    if (user.passwordHash === password) {
+      alert("Login successful!");
+    } else {
+      alert("Invalid email or password");
     }
   };
 
